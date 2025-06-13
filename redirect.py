@@ -3,15 +3,18 @@ import time
 
 midiin = rtmidi.MidiIn()
 midiout = rtmidi.MidiOut()
-
+port = -1
+portname = ""
 for i, name in enumerate(midiin.get_ports()): # autoselect first found usb midi device
     if "USB" in name:
-        midiin.open_port(i)
-        midiout.open_port(i)
+        port = i
+        portname = name
         break
 else:
     raise IOError("No USB midi device detected")
 
+midiin.open_port(port)
+midiout.open_port(port)
 
 def callback(event, data=None):
     message, deltatime = event
@@ -32,5 +35,6 @@ midiin.set_callback(callback)
 midiin.ignore_types(sysex=False, timing=False, active_sense=False) # send timing, sysex and active sense through
 print("repeating midi input Ctrl-C to quit.")
 
-while True:
-    time.sleep(1) # wait forever while repeating
+while portname in midiin.get_ports():
+    time.sleep(1) # while the midi in is connected, keep waiting and processing
+# else end
